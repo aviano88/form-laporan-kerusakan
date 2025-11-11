@@ -27,7 +27,7 @@ Aplikasi ini live di: [Vercel Deployment](https://form-laporan-kerusakan-rk5iirx
 
 1. Clone repository ini:
 ```bash
-git clone https://github.com/YOUR_USERNAME/form-laporan-kerusakan.git
+git clone https://github.com/aviano88/form-laporan-kerusakan.git
 cd form-laporan-kerusakan
 ```
 
