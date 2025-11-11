@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir Laporan Kerusakan Peralatan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+        }
+        .dark-mode-transition {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 dark-mode-transition min-h-screen p-4 sm:p-8">
+
+    <!-- Kontainer utama untuk formulir -->
+    <div class="max-w-2xl w-full bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg mx-auto dark-mode-transition">
+        
+        <!-- Header dengan tombol toggle dark mode -->
+        <div class="flex justify-between items-start mb-6">
+            <div class="flex-1">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">Form Laporan Kerusakan Peralatan</h1>
+                <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">Harap isi form berikut untuk melaporkan setiap kerusakan peralatan.</p>
+            </div>
+            
+            <!-- Toggle Dark Mode -->
+            <button id="themeToggle" class="ml-4 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" aria-label="Toggle dark mode">
+                <svg id="sunIcon" class="w-6 h-6 text-yellow-500 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <svg id="moonIcon" class="w-6 h-6 text-gray-700 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Formulir Laporan -->
+        <form id="laporanForm" class="space-y-5 sm:space-y-6">
+            
+            <!-- Input Tanggal Laporan -->
+            <div>
+                <label for="tanggal" class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Tanggal <span class="text-red-600 dark:text-red-400">*</span></label>
+                <input type="date" id="tanggal" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100">
+            </div>
+
+            <!-- Input Nama Pelapor (Depan & Belakang) -->
+            <div>
+                <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Pelapor <span class="text-red-600 dark:text-red-400">*</span></label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <input type="text" id="namaDepan" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder="Nama Depan">
+                    </div>
+                    <div>
+                        <input type="text" id="namaBelakang" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder="Nama Belakang">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Jabatan -->
+            <div>
+                <label for="jabatan" class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Jabatan <span class="text-red-600 dark:text-red-400">*</span></label>
+                <input type="text" id="jabatan" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder="Cth: Manajer TI">
+            </div>
+
+            <!-- Input Nama Peralatan -->
+            <div>
+                <label for="namaPeralatan" class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Peralatan <span class="text-red-600 dark:text-red-400">*</span></label>
+                <input type="text" id="namaPeralatan" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder="Cth: Printer Epson L3110">
+            </div>
+
+            <!-- Input Judul Kerusakan -->
+            <div>
+                <label for="judulKerusakan" class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Judul Kerusakan <span class="text-red-600 dark:text-red-400">*</span></label>
+                <input type="text" id="judulKerusakan" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder="Cth: Printer tidak bisa mencetak">
+            </div>
+
+            <!-- Textbox Deskripsi Kerusakan -->
+            <div>
+                <label for="deskripsiKerusakan" class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi Kerusakan <span class="text-red-600 dark:text-red-400">*</span></label>
+                <textarea id="deskripsiKerusakan" rows="4" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder="Jelaskan kerusakan secara rinci..."></textarea>
+            </div>
+            
+            <!-- Input Lokasi Kerusakan -->
+            <div>
+                <label for="lokasiKerusakan" class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Lokasi Kerusakan <span class="text-red-600 dark:text-red-400">*</span></label>
+                <input type="text" id="lokasiKerusakan" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder="Cth: Ruang Kantor, Lantai 2">
+            </div>
+
+            <!-- Unggah Dokumentasi -->
+            <div>
+                <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Unggah Dokumentasi</label>
+                <label for="unggahDokumentasi" class="flex flex-col items-center justify-center w-full h-32 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a5.5 5.5 0 0 0 0 11h3m5-9v9m-9-5 3 3 3-3"/>
+                        </svg>
+                        <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Browse Files</span></p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Drag and drop files here</p>
+                    </div>
+                    <input id="unggahDokumentasi" type="file" class="hidden" multiple />
+                </label>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">*(Dokumentasi yang diunggah tidak akan disertakan dalam PDF)</p>
+            </div>
+
+            <!-- Textbox Keterangan Tambahan -->
+            <div>
+                <label for="keteranganTambahan" class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Keterangan Tambahan</label>
+                <textarea id="keteranganTambahan" rows="3" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100" placeholder="Keterangan lain yang relevan..."></textarea>
+            </div>
+            
+            <!-- Tombol Unduh PDF -->
+            <div>
+                <button type="button" id="unduhPdfButton" class="w-full bg-blue-600 dark:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition duration-300 ease-in-out">
+                    Buat dan Unduh PDF
+                </button>
+            </div>
+
+            <!-- Elemen untuk menampilkan pesan status -->
+            <div id="pesan" class="text-center mt-4"></div>
+        </form>
+    </div>
+
+    <script>
+        // Dark Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        
+        // Cek preferensi tema yang tersimpan atau sistem
+        const currentTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        if (currentTheme === 'dark') {
+            html.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const newTheme = html.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Menambahkan event listener ke tombol unduh
+        document.getElementById('unduhPdfButton').addEventListener('click', function() {
+            
+            // Inisialisasi jsPDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Mengambil semua nilai dari input formulir
+            const tanggal = document.getElementById('tanggal').value;
+            const namaDepan = document.getElementById('namaDepan').value;
+            const namaBelakang = document.getElementById('namaBelakang').value;
+            const namaPelapor = `${namaDepan} ${namaBelakang}`.trim();
+            const jabatan = document.getElementById('jabatan').value;
+            const namaPeralatan = document.getElementById('namaPeralatan').value;
+            const judulKerusakan = document.getElementById('judulKerusakan').value;
+            const deskripsiKerusakan = document.getElementById('deskripsiKerusakan').value;
+            const lokasiKerusakan = document.getElementById('lokasiKerusakan').value;
+            const keteranganTambahan = document.getElementById('keteranganTambahan').value;
+            const pesanEl = document.getElementById('pesan');
+
+            // Validasi sederhana: pastikan bidang utama diisi
+            if (!tanggal || !namaDepan || !jabatan || !namaPeralatan || !judulKerusakan || !deskripsiKerusakan || !lokasiKerusakan) {
+                pesanEl.textContent = 'Harap isi semua bidang yang wajib ditandai *.';
+                pesanEl.className = 'text-center text-red-600 dark:text-red-400 mt-4';
+                return;
+            }
+
+            // Mulai membuat konten PDF
+            let yPos = 20; // Posisi Y awal pada PDF
+            
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Laporan Kerusakan Peralatan", 105, yPos, { align: 'center' }); // Judul
+            yPos += 15;
+            
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            
+            // Fungsi bantu untuk menambahkan baris data (Label: Nilai)
+            function addRow(label, value) {
+                doc.setFont('helvetica', 'bold');
+                doc.text(label, 15, yPos); // Label tebal
+                doc.setFont('helvetica', 'normal');
+                
+                // `splitTextToSize` untuk menangani teks panjang agar tidak terpotong
+                const splitValue = doc.splitTextToSize(value || '-', 130); // 130 = lebar maks teks
+                doc.text(splitValue, 60, yPos); // Nilai
+                
+                // Menyesuaikan posisi Y berdasarkan berapa banyak baris yang digunakan oleh nilai
+                yPos += (splitValue.length * 6) + 4; 
+            }
+
+            // Menambahkan data ke PDF
+            addRow("Tanggal:", tanggal);
+            addRow("Nama Pelapor:", namaPelapor);
+            addRow("Jabatan:", jabatan);
+            addRow("Nama Peralatan:", namaPeralatan);
+            addRow("Judul Kerusakan:", judulKerusakan);
+            addRow("Lokasi Kerusakan:", lokasiKerusakan);
+            
+            yPos += 5; // Spasi ekstra sebelum bagian deskripsi
+            
+            // Penanganan khusus untuk textarea (Deskripsi)
+            doc.setFont('helvetica', 'bold');
+            doc.text("Deskripsi Kerusakan:", 15, yPos);
+            yPos += 8;
+            doc.setFont('helvetica', 'normal');
+            const splitDeskripsi = doc.splitTextToSize(deskripsiKerusakan || 'Tidak ada deskripsi.', 180);
+            doc.text(splitDeskripsi, 15, yPos);
+            yPos += (splitDeskripsi.length * 6) + 5;
+            
+            // Penanganan khusus untuk textarea (Keterangan Tambahan)
+            doc.setFont('helvetica', 'bold');
+            doc.text("Keterangan Tambahan:", 15, yPos);
+            yPos += 8;
+            doc.setFont('helvetica', 'normal');
+            const splitKeterangan = doc.splitTextToSize(keteranganTambahan || 'Tidak ada.', 180);
+            doc.text(splitKeterangan, 15, yPos);
+            
+            // Menyimpan file PDF dengan nama file dinamis
+            doc.save(`Laporan_${namaPeralatan.replace(/ /g, '_')}_${tanggal}.pdf`);
+
+            // Memberi umpan balik kepada pengguna
+            pesanEl.textContent = 'PDF berhasil dibuat dan diunduh!';
+            pesanEl.className = 'text-center text-green-600 dark:text-green-400 mt-4';
+        });
+    </script>
+</body>
+</html>
