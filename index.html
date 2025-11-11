@@ -97,18 +97,19 @@
 
             <!-- Unggah Dokumentasi -->
             <div>
-                <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Unggah Dokumentasi</label>
+                <label class="block font-medium text-gray-700 dark:text-gray-300 mb-2">Unggah Dokumentasi Foto</label>
                 <label for="unggahDokumentasi" class="flex flex-col items-center justify-center w-full h-32 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
                         <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a5.5 5.5 0 0 0 0 11h3m5-9v9m-9-5 3 3 3-3"/>
                         </svg>
                         <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Browse Files</span></p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Drag and drop files here</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Pilih foto dokumentasi (JPG, PNG)</p>
                     </div>
-                    <input id="unggahDokumentasi" type="file" class="hidden" multiple />
+                    <input id="unggahDokumentasi" type="file" class="hidden" multiple accept="image/*" />
                 </label>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">*(Dokumentasi yang diunggah tidak akan disertakan dalam PDF)</p>
+                <div id="previewContainer" class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 hidden"></div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">*Foto yang dipilih akan disertakan dalam PDF</p>
             </div>
 
             <!-- Textbox Keterangan Tambahan -->
@@ -148,8 +149,57 @@
             localStorage.setItem('theme', newTheme);
         });
 
+        // Preview Foto Dokumentasi
+        const fileInput = document.getElementById('unggahDokumentasi');
+        const previewContainer = document.getElementById('previewContainer');
+        let uploadedImages = [];
+
+        fileInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            
+            if (files.length > 0) {
+                previewContainer.classList.remove('hidden');
+                previewContainer.innerHTML = '';
+                uploadedImages = [];
+                
+                files.forEach((file, index) => {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(event) {
+                            uploadedImages.push(event.target.result);
+                            
+                            const imgContainer = document.createElement('div');
+                            imgContainer.className = 'relative';
+                            
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.className = 'w-full h-24 object-cover rounded-lg border border-gray-300 dark:border-gray-600';
+                            
+                            const removeBtn = document.createElement('button');
+                            removeBtn.innerHTML = '×';
+                            removeBtn.className = 'absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm hover:bg-red-600';
+                            removeBtn.onclick = function() {
+                                uploadedImages.splice(index, 1);
+                                imgContainer.remove();
+                                if (uploadedImages.length === 0) {
+                                    previewContainer.classList.add('hidden');
+                                }
+                            };
+                            
+                            imgContainer.appendChild(img);
+                            imgContainer.appendChild(removeBtn);
+                            previewContainer.appendChild(imgContainer);
+                        };
+                        
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+
         // Menambahkan event listener ke tombol unduh
-        document.getElementById('unduhPdfButton').addEventListener('click', function() {
+        document.getElementById('unduhPdfButton').addEventListener('click', async function() {
             
             // Inisialisasi jsPDF
             const { jsPDF } = window.jspdf;
@@ -175,57 +225,189 @@
                 return;
             }
 
-            // Mulai membuat konten PDF
-            let yPos = 20; // Posisi Y awal pada PDF
-            
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
-            doc.text("Laporan Kerusakan Peralatan", 105, yPos, { align: 'center' }); // Judul
-            yPos += 15;
-            
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'normal');
-            
-            // Fungsi bantu untuk menambahkan baris data (Label: Nilai)
-            function addRow(label, value) {
-                doc.setFont('helvetica', 'bold');
-                doc.text(label, 15, yPos); // Label tebal
-                doc.setFont('helvetica', 'normal');
-                
-                // `splitTextToSize` untuk menangani teks panjang agar tidak terpotong
-                const splitValue = doc.splitTextToSize(value || '-', 130); // 130 = lebar maks teks
-                doc.text(splitValue, 60, yPos); // Nilai
-                
-                // Menyesuaikan posisi Y berdasarkan berapa banyak baris yang digunakan oleh nilai
-                yPos += (splitValue.length * 6) + 4; 
-            }
+            pesanEl.textContent = 'Membuat PDF...';
+            pesanEl.className = 'text-center text-blue-600 dark:text-blue-400 mt-4';
 
-            // Menambahkan data ke PDF
-            addRow("Tanggal:", tanggal);
-            addRow("Nama Pelapor:", namaPelapor);
-            addRow("Jabatan:", jabatan);
-            addRow("Nama Peralatan:", namaPeralatan);
-            addRow("Judul Kerusakan:", judulKerusakan);
-            addRow("Lokasi Kerusakan:", lokasiKerusakan);
+            // Mulai membuat konten PDF dengan layout profesional
+            let yPos = 15;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 15;
+            const contentWidth = pageWidth - (2 * margin);
             
-            yPos += 5; // Spasi ekstra sebelum bagian deskripsi
+            // Header dengan background biru
+            doc.setFillColor(37, 99, 235); // Blue-600
+            doc.rect(0, 0, pageWidth, 35, 'F');
             
-            // Penanganan khusus untuk textarea (Deskripsi)
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
             doc.setFont('helvetica', 'bold');
-            doc.text("Deskripsi Kerusakan:", 15, yPos);
-            yPos += 8;
-            doc.setFont('helvetica', 'normal');
-            const splitDeskripsi = doc.splitTextToSize(deskripsiKerusakan || 'Tidak ada deskripsi.', 180);
-            doc.text(splitDeskripsi, 15, yPos);
-            yPos += (splitDeskripsi.length * 6) + 5;
+            doc.text("LAPORAN KERUSAKAN PERALATAN", pageWidth / 2, 15, { align: 'center' });
             
-            // Penanganan khusus untuk textarea (Keterangan Tambahan)
-            doc.setFont('helvetica', 'bold');
-            doc.text("Keterangan Tambahan:", 15, yPos);
-            yPos += 8;
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
-            const splitKeterangan = doc.splitTextToSize(keteranganTambahan || 'Tidak ada.', 180);
-            doc.text(splitKeterangan, 15, yPos);
+            doc.text(`Tanggal: ${tanggal}`, pageWidth / 2, 25, { align: 'center' });
+            
+            yPos = 45;
+            doc.setTextColor(0, 0, 0);
+            
+            // Fungsi untuk menambahkan section dengan border
+            function addSection(title, content, isBordered = true) {
+                if (yPos > pageHeight - 40) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                
+                if (isBordered) {
+                    doc.setFillColor(249, 250, 251); // Gray-50
+                    doc.roundedRect(margin, yPos - 5, contentWidth, 12, 2, 2, 'F');
+                }
+                
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(37, 99, 235);
+                doc.text(title, margin + 3, yPos + 2);
+                
+                yPos += 10;
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(0, 0, 0);
+                
+                if (typeof content === 'string') {
+                    const lines = doc.splitTextToSize(content, contentWidth - 6);
+                    doc.text(lines, margin + 3, yPos);
+                    yPos += (lines.length * 5) + 8;
+                } else if (Array.isArray(content)) {
+                    content.forEach(item => {
+                        const lines = doc.splitTextToSize(`• ${item}`, contentWidth - 10);
+                        doc.text(lines, margin + 6, yPos);
+                        yPos += (lines.length * 5) + 2;
+                    });
+                    yPos += 8;
+                }
+            }
+            
+            // Informasi Pelapor (dalam box)
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(margin, yPos, contentWidth, 30, 3, 3);
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Nama Pelapor:', margin + 5, yPos + 8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(namaPelapor, margin + 40, yPos + 8);
+            
+            doc.setFont('helvetica', 'bold');
+            doc.text('Jabatan:', margin + 5, yPos + 16);
+            doc.setFont('helvetica', 'normal');
+            doc.text(jabatan, margin + 40, yPos + 16);
+            
+            doc.setFont('helvetica', 'bold');
+            doc.text('Lokasi:', margin + 5, yPos + 24);
+            doc.setFont('helvetica', 'normal');
+            doc.text(lokasiKerusakan, margin + 40, yPos + 24);
+            
+            yPos += 40;
+            
+            // Informasi Peralatan
+            addSection('PERALATAN', namaPeralatan);
+            
+            // Judul Kerusakan
+            addSection('JUDUL KERUSAKAN', judulKerusakan);
+            
+            // Deskripsi Kerusakan dengan border
+            doc.setDrawColor(200, 200, 200);
+            const deskLines = doc.splitTextToSize(deskripsiKerusakan || 'Tidak ada deskripsi.', contentWidth - 12);
+            const deskHeight = (deskLines.length * 5) + 20;
+            
+            if (yPos + deskHeight > pageHeight - 20) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            doc.setFillColor(249, 250, 251);
+            doc.roundedRect(margin, yPos - 5, contentWidth, 12, 2, 2, 'F');
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(37, 99, 235);
+            doc.text('DESKRIPSI KERUSAKAN', margin + 3, yPos + 2);
+            yPos += 10;
+            
+            doc.roundedRect(margin, yPos, contentWidth, deskHeight - 15, 3, 3);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(0, 0, 0);
+            doc.text(deskLines, margin + 5, yPos + 7);
+            yPos += deskHeight - 5;
+            
+            // Keterangan Tambahan
+            if (keteranganTambahan) {
+                addSection('KETERANGAN TAMBAHAN', keteranganTambahan);
+            }
+            
+            // Foto Dokumentasi
+            if (uploadedImages.length > 0) {
+                if (yPos > pageHeight - 80) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                
+                doc.setFillColor(249, 250, 251);
+                doc.roundedRect(margin, yPos - 5, contentWidth, 12, 2, 2, 'F');
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(37, 99, 235);
+                doc.text('DOKUMENTASI FOTO', margin + 3, yPos + 2);
+                yPos += 15;
+                
+                const imgWidth = 80;
+                const imgHeight = 60;
+                const imgsPerRow = 2;
+                const imgSpacing = 10;
+                
+                for (let i = 0; i < uploadedImages.length; i++) {
+                    const col = i % imgsPerRow;
+                    const row = Math.floor(i / imgsPerRow);
+                    
+                    if (row > 0 && col === 0) {
+                        yPos += imgHeight + imgSpacing;
+                        
+                        if (yPos + imgHeight > pageHeight - 20) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                    }
+                    
+                    const xPos = margin + (col * (imgWidth + imgSpacing));
+                    
+                    try {
+                        doc.addImage(uploadedImages[i], 'JPEG', xPos, yPos, imgWidth, imgHeight);
+                        doc.setDrawColor(200, 200, 200);
+                        doc.roundedRect(xPos, yPos, imgWidth, imgHeight, 2, 2);
+                        
+                        // Label foto
+                        doc.setFontSize(8);
+                        doc.setTextColor(100, 100, 100);
+                        doc.text(`Foto ${i + 1}`, xPos + (imgWidth / 2), yPos + imgHeight + 5, { align: 'center' });
+                    } catch (error) {
+                        console.error('Error adding image:', error);
+                    }
+                }
+                
+                yPos += imgHeight + 15;
+            }
+            
+            // Footer dengan garis
+            const finalY = Math.min(yPos + 30, pageHeight - 20);
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.3);
+            doc.line(margin, finalY, pageWidth - margin, finalY);
+            
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Dokumen ini dibuat secara otomatis melalui sistem pelaporan', pageWidth / 2, finalY + 5, { align: 'center' });
             
             // Menyimpan file PDF dengan nama file dinamis
             doc.save(`Laporan_${namaPeralatan.replace(/ /g, '_')}_${tanggal}.pdf`);
